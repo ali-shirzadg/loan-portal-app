@@ -5,16 +5,16 @@ services:
     image: mysql:9.7
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
-      MYSQL_DATABASE: ${DB_NAME:?set DB_NAME in .env}
-      MYSQL_USER: ${DB_USER:?set DB_USER in .env}
-      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:?set DATABASE_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${DATABASE_NAME:?set DATABASE_NAME in .env}
+      MYSQL_USER: ${DATABASE_USERNAME:?set DATABASE_USERNAME in .env}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
     command:
       - --default-time-zone=+00:00
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
     ports:
-      - '127.0.0.1:${DB_PORT:-3306}:3306'
+      - '127.0.0.1:${DATABASE_PORT:-3306}:3306'
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
