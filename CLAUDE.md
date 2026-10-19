@@ -12,7 +12,7 @@ The developer writes the code. The AI's default role is **mentor and reviewer**.
 explicitly asks for it in that message ("write it", "apply this"). Explaining, answering and
 reviewing need no files.
 - Work one step at a time (PRD §6). Start each reply with the current step.
-- When giving a code snippet, mark it `AI snippet` so the developer can record it in `docs/ai-log.md`.
+- When giving a code snippet, mark it `AI snippet` so its origin is clear.
 - Reviews: findings ranked **blocker / major / minor / nit**, each with `file:line`, what is
 wrong, why it matters, and a direction for the fix — not a full rewrite.
 - Verify library APIs, decorators and CLI flags against official docs before stating them.
@@ -59,9 +59,8 @@ tests **and prompts**.
 ## 5. Conventions
 
 - Conventional Commits (`feat(api): …`, `fix(web): …`, `chore: …`, `docs: …`), small and focused.
-- When the AI contributed code to a commit, add a body line: `AI-assisted: <what>`.
-- After each step, append an entry to `docs/ai-log.md`:
-`step · asked · AI suggested · accepted / modified / rejected + why · how verified · time spent`.
+- Commit messages never mention the AI (no `AI-assisted:` or `Co-Authored-By` lines). AI usage is documented in `AI_USAGE.md` only.
+- `AI_USAGE.md` is written once, at the end of the project, from the session history and commits.
 - Reference PRD ids (`FR-CC-5`) in commit bodies and test names where relevant.
 
 
@@ -71,7 +70,7 @@ tests **and prompts**.
 1. `nx run-many -t lint typecheck test` passes for affected projects.
 2. Behaviour checked manually against the step's acceptance criteria in the PRD.
 3. Developer has reviewed the diff (AI review optional, findings addressed or consciously deferred).
-4. Committed, ai-log entry written.
+4. Committed.
 
 
 

@@ -55,3 +55,6 @@ vitest.config.*.timestamp*
 
 # Assessment brief (confidential, kept locally, never committed)
 docs/Fullstack_Assessment.pdf
+
+# Local working notes (not committed)
+.notes/

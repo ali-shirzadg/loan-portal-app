@@ -28,7 +28,7 @@ MySQL database.
 - Meet every functional requirement in the brief with clear structure and defensible decisions.
 - Demonstrate production-minded handling of the brief's hidden problems: slow upstream
 dependency, long-running background work, real-time updates, data volume, access control.
-- Leave an honest, reviewable trail: commit history, `docs/ai-log.md`, `AI_USAGE.md`.
+- Leave an honest, reviewable trail: commit history and `AI_USAGE.md`.
 
 
 
@@ -245,7 +245,7 @@ libs/
   shared/         DTO classes (class-validator), enums, interfaces, custom validators
                   ⚠ no TypeORM, no @nestjs/* imports — this lib ships to the browser
 docs/
-  PRD.md  ai-log.md
+  PRD.md
 docker-compose.yml  README.md  AI_USAGE.md  CLAUDE.md
 ```
 
@@ -300,7 +300,7 @@ All routes under `/api` prefix.
 
 
 
-## 6. Delivery plan (each step = one review gate + commit + ai-log entry)
+## 6. Delivery plan (each step = one review gate + commit)
 
 
 | Step | Scope                                                                   | FRs             |
