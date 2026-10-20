@@ -4,6 +4,10 @@
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@loan-portal/shared": ["../../libs/shared/src/index.ts"]
+    },
     "types": ["vite/client", "vitest"]
   },
   "files": [],
