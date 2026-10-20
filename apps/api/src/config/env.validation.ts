@@ -1,10 +1,13 @@
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
   IsString,
+  IsUrl,
   Max,
+  MinLength,
   Min,
   validateSync,
 } from 'class-validator';
@@ -44,6 +47,40 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   DATABASE_PASSWORD!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  REDIS_HOST!: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  REDIS_PORT!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  REDIS_PASSWORD!: string;
+
+  @IsString()
+  @MinLength(32)
+  JWT_SECRET!: string;
+
+  @IsInt()
+  @Min(60)
+  JWT_EXPIRES_IN_SECONDS!: number;
+
+  @IsUrl({ require_tld: false })
+  WEB_ORIGIN!: string;
+
+  // Parsed explicitly: implicit conversion would turn the string "false" into true.
+  @Transform(({ obj }) => {
+    const raw: unknown = obj.COOKIE_SECURE;
+    if (raw === 'true') return true;
+    if (raw === 'false') return false;
+    return raw;
+  })
+  @IsBoolean()
+  COOKIE_SECURE!: boolean;
 }
 
 export function validate(
