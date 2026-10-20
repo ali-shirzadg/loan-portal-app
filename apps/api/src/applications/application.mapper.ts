@@ -2,6 +2,7 @@ import {
   ApplicationDetailDto,
   ApplicationSummaryDto,
   maskNric,
+  Paginated,
 } from '@loan-portal/shared';
 import type { LoanApplication } from './loan-application.entity';
 
@@ -36,4 +37,10 @@ export function toDetailDto(app: LoanApplication): ApplicationDetailDto {
     createdAt: app.createdAt.toISOString(),
     decidedAt: app.decidedAt?.toISOString() ?? null,
   };
+}
+
+export function toSummaryPage(
+  page: Paginated<LoanApplication>,
+): Paginated<ApplicationSummaryDto> {
+  return { ...page, items: page.items.map(toSummaryDto) };
 }

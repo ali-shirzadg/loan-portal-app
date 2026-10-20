@@ -1,9 +1,10 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import {
   ApplicationStatus,
   CreateApplicationDto,
+  Role,
   StatusActor,
 } from '@loan-portal/shared';
 import { CREDIT_CHECK_DELAY_MS } from '../credit-check/credit-check-schedule';
@@ -163,6 +164,105 @@ describe('ApplicationsService', () => {
 
       await expect(service.create('user-1', dto, 'key-1')).rejects.toThrow(
         'connection lost',
+      );
+    });
+  });
+});
+
+describe('ApplicationsService reads', () => {
+  let service: ApplicationsService;
+  const repo = { findOneBy: jest.fn(), findAndCount: jest.fn() };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    repo.findAndCount.mockResolvedValue([[], 0]);
+    const module = await Test.createTestingModule({
+      providers: [
+        ApplicationsService,
+        { provide: getRepositoryToken(LoanApplication), useValue: repo },
+        { provide: getDataSourceToken(), useValue: {} },
+        { provide: LoanPurposesService, useValue: {} },
+        { provide: CreditCheckScheduler, useValue: {} },
+      ],
+    }).compile();
+    service = module.get(ApplicationsService);
+  });
+
+  describe('findOneFor (FR-VIEW-2/5, NFR-SEC-2)', () => {
+    it('scopes a customer lookup to their own user id in the query', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      await expect(
+        service.findOneFor('app-1', { id: 'user-1', role: Role.CUSTOMER }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        id: 'app-1',
+        userId: 'user-1',
+      });
+    });
+
+    it("returns 404, not 403, for another customer's application", async () => {
+      // The WHERE clause filters it out, so the database returns nothing.
+      repo.findOneBy.mockResolvedValue(null);
+
+      const error = await service
+        .findOneFor('app-of-user-2', { id: 'user-1', role: Role.CUSTOMER })
+        .catch((e: unknown) => e);
+
+      expect((error as NotFoundException).getStatus()).toBe(404);
+    });
+
+    it('lets an admin read any application', async () => {
+      const app = Object.assign(new LoanApplication(), { id: 'app-1' });
+      repo.findOneBy.mockResolvedValue(app);
+
+      await expect(
+        service.findOneFor('app-1', { id: 'admin-1', role: Role.ADMIN }),
+      ).resolves.toBe(app);
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'app-1' });
+    });
+  });
+
+  describe('lists (FR-VIEW-1/3/4/6)', () => {
+    it("filters a customer's list by user id, newest first, with offset paging", async () => {
+      await service.listForCustomer('user-1', { page: 3, pageSize: 20 });
+
+      expect(repo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: 'user-1' },
+          order: { createdAt: 'DESC', id: 'DESC' },
+          skip: 40,
+          take: 20,
+        }),
+      );
+    });
+
+    it('applies the status filter for admins and returns the page envelope', async () => {
+      repo.findAndCount.mockResolvedValue([[{ id: 'a' }], 41]);
+
+      const result = await service.listAll(
+        { page: 2, pageSize: 20 },
+        ApplicationStatus.PENDING,
+      );
+
+      expect(repo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { status: ApplicationStatus.PENDING },
+        }),
+      );
+      expect(result).toEqual({
+        items: [{ id: 'a' }],
+        page: 2,
+        pageSize: 20,
+        total: 41,
+      });
+    });
+
+    it('lists every status when no filter is given', async () => {
+      await service.listAll({ page: 1, pageSize: 20 });
+
+      expect(repo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {} }),
       );
     });
   });

@@ -1,14 +1,22 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import {
   ApiErrorBody,
   ApplicationStatus,
   CreateApplicationDto,
+  Paginated,
+  Role,
   normalizeMyPhone,
   normalizeNric,
   StatusActor,
 } from '@loan-portal/shared';
 import { DataSource, Repository } from 'typeorm';
+import type { AuthUser } from '../common/types/auth-user';
 import { isDuplicateKeyError } from '../common/db-errors';
 import { normalizeMoney } from '../common/money';
 import { CreditCheckScheduler } from '../credit-check/credit-check.scheduler';
@@ -16,6 +24,27 @@ import { pickCreditCheckDelayMs } from '../credit-check/credit-check-schedule';
 import { LoanPurposesService } from '../loan-purposes/loan-purposes.service';
 import { ApplicationStatusEvent } from './application-status-event.entity';
 import { LoanApplication } from './loan-application.entity';
+
+export interface PageRequest {
+  page: number;
+  pageSize: number;
+}
+
+/** Newest first; id breaks ties so pages are stable. Matches the (user_id|status, created_at) indexes. */
+const NEWEST_FIRST = { createdAt: 'DESC', id: 'DESC' } as const;
+
+/** Columns a list row needs; the wide detail-only columns are not read. */
+const SUMMARY_COLUMNS = {
+  id: true,
+  fullName: true,
+  nric: true,
+  loanAmount: true,
+  tenureMonths: true,
+  purposeLabel: true,
+  status: true,
+  createdAt: true,
+  decidedAt: true,
+} as const;
 
 export interface CreateResult {
   application: LoanApplication;
@@ -105,6 +134,49 @@ export class ApplicationsService {
     }
     await this.scheduleCreditCheck(application);
     return { application, created: true };
+  }
+
+  /** FR-VIEW-1: a customer's own applications. Ownership is part of the WHERE clause. */
+  listForCustomer(
+    userId: string,
+    { page, pageSize }: PageRequest,
+  ): Promise<Paginated<LoanApplication>> {
+    return this.paginate({ userId }, page, pageSize);
+  }
+
+  /** FR-VIEW-3/4: every application, optionally filtered by status. */
+  listAll(
+    { page, pageSize }: PageRequest,
+    status?: ApplicationStatus,
+  ): Promise<Paginated<LoanApplication>> {
+    return this.paginate(status ? { status } : {}, page, pageSize);
+  }
+
+  /**
+   * FR-VIEW-2/5: an admin may read any application; a customer only their own.
+   * Someone else's id is indistinguishable from a missing one (404, not 403).
+   */
+  async findOneFor(id: string, user: AuthUser): Promise<LoanApplication> {
+    const application = await this.applications.findOneBy(
+      user.role === Role.ADMIN ? { id } : { id, userId: user.id },
+    );
+    if (!application) throw new NotFoundException('Application not found');
+    return application;
+  }
+
+  private async paginate(
+    where: { userId?: string; status?: ApplicationStatus },
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<LoanApplication>> {
+    const [items, total] = await this.applications.findAndCount({
+      select: SUMMARY_COLUMNS,
+      where,
+      order: NEWEST_FIRST,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    return { items, page, pageSize, total };
   }
 
   private findByIdempotencyKey(
