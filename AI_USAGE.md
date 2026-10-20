@@ -2,17 +2,33 @@
 
 **Tool:** Claude Code (Claude Opus), with Sonnet and Haiku subagents for parallel and smaller tasks.
 
-I have been building software for more than ten years, and I ran this project the way I run a
-team: I set the direction, and the agents did the typing.
+## Before the PRD
 
-- **What to build:** I read the brief, then reviewed and corrected the PRD before any code was written.
-- **How to build it:** the stack, architecture, data model, security rules and trade-offs were my
-  decisions, written into `CLAUDE.md` so every agent followed them.
-- **Agent-driven development:** Claude Code built the app step by step from that plan, one commit per step.
-- **Review:** I reviewed the result, changed or rejected what did not meet my standard, and
-  accepted nothing that had not been tested and checked by hand.
+I chose the stack and the approach before any requirements were written:
 
-Where I overruled the agents, for example:
+- Nx monorepo, NestJS with TypeORM and MySQL, React with Vite.
+- class-validator DTOs in a shared library, so the API and the browser use the same rules.
+- bulletproof-react structure, TanStack Query for caching and retries, react-hook-form for forms.
+- Official generators and official docs only, no third-party boilerplates.
+
+Claude Code analysed the brief for what it was really testing (the slow upstream, the long-running
+credit check, live updates, 10,000 rows, access control) and drafted the PRD and `CLAUDE.md` from
+these choices. I reviewed both and had mistakes corrected before the first commit.
+
+## First steps: AI as mentor
+
+For scaffolding, Docker and config validation I worked hands-on. The agent ran the generators I
+picked, explained options and reviewed my code. The early `CLAUDE.md` and the development log in the
+history are from this phase.
+
+## Then: agent-driven development
+
+To move faster, I switched to agent-driven development. I kept the architecture decisions: BullMQ
+and Redis for the credit check, SSE for live updates, Tailwind with shadcn/ui, argon2id, rate
+limiting, Swagger, idempotency keys, an audit table, and later encryption of personal data at rest.
+Claude Code implemented them step by step, one commit per step, and I reviewed the results.
+
+## Where I overruled the agents
 
 - `npm run dev` starts only the apps, not the database: they have different lifecycles.
 - Strict TypeScript for every project, not only the API as suggested.
