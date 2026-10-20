@@ -3,6 +3,7 @@ const esmOnlyPackages = [
   '@nestjs/jwt',
   '@nestjs/typeorm',
   '@nestjs/bullmq',
+  '@nestjs/bull-shared',
   '@nestjs/cache-manager',
   'cache-manager',
   'keyv',

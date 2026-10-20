@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ApplicationsModule } from '../applications/applications.module';
@@ -35,6 +36,16 @@ import { buildTypeOrmOptions } from '../database/typeorm.config';
       }),
     }),
     // Default limit for every route; credential endpoints tighten it with @Throttle.
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<EnvironmentVariables, true>) => ({
+        connection: {
+          host: config.get('REDIS_HOST', { infer: true }),
+          port: config.get('REDIS_PORT', { infer: true }),
+          password: config.get('REDIS_PASSWORD', { infer: true }),
+        },
+      }),
+    }),
     ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 120 }] }),
     UsersModule,
     AuthModule,

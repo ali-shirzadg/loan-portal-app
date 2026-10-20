@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import {
   ApiErrorBody,
@@ -11,6 +11,7 @@ import {
 import { DataSource, Repository } from 'typeorm';
 import { isDuplicateKeyError } from '../common/db-errors';
 import { normalizeMoney } from '../common/money';
+import { CreditCheckScheduler } from '../credit-check/credit-check.scheduler';
 import { pickCreditCheckDelayMs } from '../credit-check/credit-check-schedule';
 import { LoanPurposesService } from '../loan-purposes/loan-purposes.service';
 import { ApplicationStatusEvent } from './application-status-event.entity';
@@ -24,11 +25,14 @@ export interface CreateResult {
 
 @Injectable()
 export class ApplicationsService {
+  private readonly logger = new Logger(ApplicationsService.name);
+
   constructor(
     @InjectRepository(LoanApplication)
     private readonly applications: Repository<LoanApplication>,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly purposes: LoanPurposesService,
+    private readonly creditCheck: CreditCheckScheduler,
   ) {}
 
   /** FR-APP-1/3/4, FR-CC-1/2. */
@@ -99,6 +103,7 @@ export class ApplicationsService {
       }
       throw error;
     }
+    await this.scheduleCreditCheck(application);
     return { application, created: true };
   }
 
@@ -107,5 +112,25 @@ export class ApplicationsService {
     idempotencyKey: string,
   ): Promise<LoanApplication | null> {
     return this.applications.findOneBy({ userId, idempotencyKey });
+  }
+
+  /**
+   * After commit. If Redis is unavailable the application stays PENDING and the
+   * boot-time reconciliation (FR-CC-4) enqueues it later; the customer's
+   * submission must not fail for that reason.
+   */
+  private async scheduleCreditCheck(
+    application: LoanApplication,
+  ): Promise<void> {
+    try {
+      await this.creditCheck.schedule(
+        application.id,
+        application.creditCheckDueAt,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Could not enqueue credit check for ${application.id}: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
+    }
   }
 }
