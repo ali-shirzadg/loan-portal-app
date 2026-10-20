@@ -10,11 +10,7 @@ import { CREDIT_CHECK_QUEUE } from '../credit-check/credit-check.constants';
 import dataSource from '../database/data-source';
 import { User } from '../users/user.entity';
 import { upsertAdmin } from './seed-admin';
-import {
-  buildSeedRows,
-  DEMO_CUSTOMER_PASSWORD,
-  SEED_EMAIL_DOMAIN,
-} from './seed-data';
+import { buildSeedRows, DEMO_CUSTOMER_PASSWORD } from './seed-data';
 
 /** FR-SEED-3: ~1,000 rows per INSERT statement. */
 const BATCH_SIZE = 1_000;
@@ -34,26 +30,14 @@ async function insertInBatches<T extends ObjectLiteral>(
   }
 }
 
-/** Removes earlier seed output: every user under the seed domain and their data. */
-async function wipeSeededData(manager: EntityManager): Promise<void> {
-  const pattern = `%${SEED_EMAIL_DOMAIN}`;
-  await manager.query(
-    `DELETE e FROM application_status_events e
-       JOIN loan_applications a ON a.id = e.application_id
-       JOIN users u ON u.id = a.user_id
-      WHERE u.email LIKE ?`,
-    [pattern],
-  );
-  await manager.query(
-    `DELETE a FROM loan_applications a
-       JOIN users u ON u.id = a.user_id
-      WHERE u.email LIKE ? AND u.role = 'CUSTOMER'`,
-    [pattern],
-  );
-  await manager.query(
-    `DELETE FROM users WHERE email LIKE ? AND role = 'CUSTOMER'`,
-    [pattern],
-  );
+/**
+ * Removes every customer with their applications and status events. The admin
+ * account is kept (upsertAdmin has already reset it).
+ */
+async function wipeCustomerData(manager: EntityManager): Promise<void> {
+  await manager.query('DELETE FROM application_status_events');
+  await manager.query('DELETE FROM loan_applications');
+  await manager.query(`DELETE FROM users WHERE role = 'CUSTOMER'`);
 }
 
 async function enqueuePending(pending: LoanApplication[]): Promise<void> {
@@ -76,6 +60,11 @@ async function enqueuePending(pending: LoanApplication[]): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  if (process.env['NODE_ENV'] === 'production') {
+    throw new Error(
+      'Refusing to seed: NODE_ENV is production (the seed deletes all customer data).',
+    );
+  }
   const started = performance.now();
   await dataSource.initialize();
   try {
@@ -88,7 +77,7 @@ async function main(): Promise<void> {
     const rows = buildSeedRows(passwordHash);
 
     await dataSource.transaction(async (manager) => {
-      await wipeSeededData(manager);
+      await wipeCustomerData(manager);
       await insertInBatches(manager, User, rows.users);
       await insertInBatches(manager, LoanApplication, rows.applications);
       await insertInBatches(

@@ -27,6 +27,11 @@ export async function upsertAdmin(): Promise<User> {
 }
 
 async function main(): Promise<void> {
+  if (process.env['NODE_ENV'] === 'production') {
+    throw new Error(
+      'Refusing to seed an admin with dev defaults when NODE_ENV is production.',
+    );
+  }
   await dataSource.initialize();
   try {
     const admin = await upsertAdmin();

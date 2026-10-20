@@ -12,31 +12,30 @@ npx nx serve api         # http://localhost:3000/api, Swagger UI at /api/docs
 npx nx e2e api-e2e       # builds, starts the API, runs the HTTP tests, stops it
 ```
 
-## Seed (FR-SEED-*)
+## Seed (FR-SEED-\*)
 
-| Command | Effect |
-| --- | --- |
+| Command              | Effect                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `npm run seed:admin` | Creates or resets the admin account (FR-AUTH-4). Override with `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`. |
-| `npm run seed` | `seed:admin`, then **wipes and re-creates** the demo data, then enqueues the PENDING rows. |
+| `npm run seed`       | `seed:admin`, then **wipes and re-creates** the demo data, then enqueues the PENDING rows.                 |
 
-`npm run seed` is re-runnable. It deletes every user under the `@loanportal.test` domain (except the admin)
-together with their applications and status events, then inserts 501 customers, 10,000 applications and the
-status events in batches of 1,000 rows, inside one transaction. Users registered with other email domains
-are left alone. Faker is seeded, so names, NRICs and amounts are the same on every run; UUIDs and the
-PENDING due times are not.
+`npm run seed` is re-runnable. It deletes **all** customers with their applications and status events (the admin
+is kept and reset), then inserts 501 customers, 10,000 applications and the status events in batches of 1,000
+rows, inside one transaction. It refuses to run when `NODE_ENV=production`. Faker is seeded, so names, NRICs and
+amounts are the same on every run; UUIDs and the PENDING due times are not.
 
 Dev credentials (documented, never for production):
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Admin | `admin@loanportal.test` | `Admin#Passw0rd2026` |
-| Customer (has 5 PENDING + 12 decided applications) | `customer@loanportal.test` | `Customer#Passw0rd2026` |
-| 500 synthetic customers | `customer001@loanportal.test` ... `customer500@loanportal.test` | `Customer#Passw0rd2026` |
+| Role                                               | Email                                                           | Password                |
+| -------------------------------------------------- | --------------------------------------------------------------- | ----------------------- |
+| Admin                                              | `admin@loanportal.test`                                         | `Admin#Passw0rd2026`    |
+| Customer (has 5 PENDING + 12 decided applications) | `customer@loanportal.test`                                      | `Customer#Passw0rd2026` |
+| 500 synthetic customers                            | `customer001@loanportal.test` ... `customer500@loanportal.test` | `Customer#Passw0rd2026` |
 
 All seeded customers share one argon2id hash, computed once. About 20 applications are PENDING with due times
 10 s to 5 min after the seed ran; the credit-check worker decides them while the API is running.
 
-## Credit check (FR-CC-*)
+## Credit check (FR-CC-\*)
 
 - The `loan_applications` row is the source of truth. Submit writes the row and a `null -> PENDING` event in one
   transaction, then adds a BullMQ delayed job (`jobId` = application id, queue `credit-check`).
@@ -48,7 +47,7 @@ All seeded customers share one argon2id hash, computed once. About 20 applicatio
 - If Redis is down at submit time the application is still created (201) and stays PENDING until the next boot
   reconciliation. There is no periodic reconciliation; that is the first thing to add for multi-instance use.
 
-## Real time (FR-RT-*)
+## Real time (FR-RT-\*)
 
 `GET /api/applications/events` is server-sent events. Decisions are published on the Redis channel
 `application-status-changed`; every API instance subscribes and forwards to its own connected clients, filtered by
@@ -59,7 +58,8 @@ every 25 s; `EventSource.onmessage` ignores it.
 
 - `npx nx test api`: unit tests. The Nest packages that ship ESM only (`@nestjs/jwt`, `@nestjs/typeorm`,
   `@nestjs/bullmq`, ...) are compiled for Jest through `transformIgnorePatterns` in `apps/api/jest.config.cts`.
-- `npx nx e2e api-e2e`: needs the seeded admin. Registration and login are throttled to 5 requests per minute
+- `npx nx e2e api-e2e`: needs the seeded admin. It registers users under `@example.test` and deletes them (with
+  their applications) in its global teardown. The teardown also stops whatever listens on `PORT` (default 3000). Registration and login are throttled to 5 requests per minute
   per IP (FR-AUTH-6) and the suite uses 5 registrations and 2 logins, so wait a minute between consecutive runs.
 
 ## Swagger
