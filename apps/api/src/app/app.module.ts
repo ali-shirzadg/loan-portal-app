@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ApplicationsModule } from '../applications/applications.module';
 import { AuthModule } from '../auth/auth.module';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -38,6 +39,7 @@ import { buildTypeOrmOptions } from '../database/typeorm.config';
     UsersModule,
     AuthModule,
     LoanPurposesModule,
+    ApplicationsModule,
   ],
   providers: [
     // Guard order matters: throttle, then authenticate, then authorise.
