@@ -200,8 +200,8 @@ export class ApplicationsService {
 
   /**
    * After commit. If Redis is unavailable the application stays PENDING and the
-   * boot-time reconciliation (FR-CC-4) enqueues it later; the customer's
-   * submission must not fail for that reason.
+   * reconciler's sweep (FR-CC-4) enqueues it once Redis is back; the customer's
+   * submission must not fail or hang for that reason.
    */
   private async scheduleCreditCheck(
     application: LoanApplication,

@@ -44,8 +44,12 @@ All seeded customers share one argon2id hash, computed once. About 20 applicatio
   zero rows and does nothing.
 - On every boot the API scans PENDING rows and adds any missing job (and retries failed ones), so a restart, a
   flushed Redis, or rows inserted by the seed script are still decided.
-- If Redis is down at submit time the application is still created (201) and stays PENDING until the next boot
-  reconciliation. There is no periodic reconciliation; that is the first thing to add for multi-instance use.
+- Every minute the API also sweeps PENDING rows that are more than a minute past their due time and adds any missing
+  job (or retries a failed one). Job ids are application ids, so a sweep never creates a duplicate, and several API
+  instances can sweep at once.
+- If Redis is down at submit time the application is still created (201): the enqueue gives up after 2 s instead of
+  waiting on the Redis client's reconnect loop. The row stays PENDING and the first sweep after Redis is back
+  schedules it, with no restart.
 
 ## Real time (FR-RT-\*)
 
