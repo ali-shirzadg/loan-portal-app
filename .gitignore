@@ -58,3 +58,6 @@ docs/Fullstack_Assessment.pdf
 
 # Local working notes (not committed)
 .notes/
+
+# Local browser-testing artifacts (screenshots, temp files)
+.gstack/
