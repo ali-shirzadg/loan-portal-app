@@ -78,11 +78,10 @@ Priority: **M** = must (brief), **S** = should (best practice), **C** = could (i
 rotation, user re-logs in hourly. Cookie (not localStorage) keeps the token out of JS (XSS)
 and lets SSE authenticate (`EventSource` cannot send headers).
 
-**[ASSUMPTION] Password policy:** min 8 chars, no composition rules (NIST SP 800-63B style).
-Max length depends on the hashing choice — bcrypt only uses the first **72 bytes** (not
-characters; multi-byte input reaches the limit sooner), so cap input at 72 bytes if bcrypt is chosen.
-Hashing algorithm: **[OPEN]** D4 — follow the OWASP Password Storage Cheat Sheet minimums
-(Argon2id m=19 MiB, t=2, p=1; or bcrypt work factor ≥ 10).
+**[ASSUMPTION] Password policy:** 12-128 characters, no composition rules (NIST SP 800-63B style).
+Hashing: argon2id (decision D4, §7) following the OWASP Password Storage Cheat Sheet minimums
+(m=19 MiB, t=2, p=1), which has no 72-byte input limit.
+
 
 ### 3.2 Loan application — `FR-APP`
 
@@ -263,7 +262,9 @@ docker-compose.yml  README.md  AI_USAGE.md  CLAUDE.md
 
 
 
-### 5.3 Data model (sketch)
+### 5.3 Data model
+
+Full schema, indexes, constraints and the queries they serve: [database-schema.md](database-schema.md). Sketch:
 
 **users** — `id` (uuid PK), `email` (unique), `password_hash`, `full_name`, `role` (enum), `created_at`, `updated_at`
 
@@ -321,19 +322,22 @@ All routes under `/api` prefix.
 
 
 
-## 7. Open decisions (resolve before the step that needs them)
+## 7. Decisions
 
+Resolved before the build phase.
 
-| #   | Decision                  | Recommendation                  | Needed by |
-| --- | ------------------------- | ------------------------------- | --------- |
-| D1  | Credit-check scheduling   | DB due-time + poller            | Step 7    |
-| D2  | Real-time mechanism       | SSE                             | Step 8    |
-| D3  | UI kit                    | —                               | Step 4    |
-| D4  | Password hashing          | `argon2` (Argon2id, OWASP first choice, native addon) vs `bcrypt` (native addon) vs `bcryptjs` (pure JS, no native build, slower) | Step 4    |
-| D5  | Credit decision rule      | Affordability rule + randomness | Step 7    |
-| D6  | Idempotency-Key on submit | Could — if time                 | Step 6    |
-| D7  | Status audit table        | Could — if time                 | Step 7    |
+| #   | Decision                  | Resolution                                                                                                                                                                                                                                           |
+| --- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Credit-check scheduling   | **BullMQ delayed jobs + Redis.** The `loan_applications` row is the source of truth (`credit_check_due_at`, `status`); job id = application id; on boot, re-enqueue every `PENDING` row so a lost Redis does not lose work. The decision is still the guarded `UPDATE … WHERE status = 'PENDING'` (FR-CC-5) |
+| D2  | Real-time mechanism       | **SSE** (`GET /applications/events`, cookie auth, client invalidates React Query on event)                                                                                                                                                             |
+| D3  | UI kit                    | **Tailwind CSS + shadcn/ui**                                                                                                                                                                                                                           |
+| D4  | Password hashing          | **argon2id** (`argon2` package)                                                                                                                                                                                                                        |
+| D5  | Credit decision rule      | **Pure random**                                                                                                                                                                                                                                        |
+| D6  | Idempotency-Key on submit | **Yes**: optional `Idempotency-Key` header, unique per `(user_id, idempotency_key)`                                                                                                                                                                    |
+| D7  | Status audit table        | **Yes**: `application_status_events` (append-only)                                                                                                                                                                                                     |
 
+Also decided: Swagger UI at `/api/docs`; rate limiting (`@nestjs/throttler`) on the auth endpoints; password
+policy is 12-128 characters (argon2id has no 72-byte limit).
 
 
 
