@@ -79,7 +79,9 @@ describe('ApplicationForm', () => {
     );
     expect(nricError.getAttribute('role')).toBe('alert');
     expect(
-      screen.getByText(/Loan amount must be an amount between 1000 and 150000/),
+      screen.getByText(
+        /Loan amount must be an amount between RM1,000.00 and RM150,000.00/,
+      ),
     ).toBeTruthy();
     expect(screen.getByLabelText('NRIC').getAttribute('aria-invalid')).toBe(
       'true',

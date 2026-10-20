@@ -1,5 +1,6 @@
 import {
   ApplicationStatus,
+  formatNric,
   formatRm,
   type ApplicationDetailDto,
 } from '@loan-portal/shared';
@@ -61,7 +62,7 @@ export function ApplicationDetail({
               {formatRm(application.monthlyIncome)}
             </Row>
             <Row label="Full name">{application.fullName}</Row>
-            <Row label="NRIC">{application.nric}</Row>
+            <Row label="NRIC">{formatNric(application.nric)}</Row>
             <Row label="Mobile number">{application.phone}</Row>
             <Row label="Email">{application.email}</Row>
             <Row label="Submitted">{formatDateTime(application.createdAt)}</Row>

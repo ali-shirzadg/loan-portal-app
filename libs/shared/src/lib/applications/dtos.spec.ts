@@ -97,3 +97,18 @@ describe('ListApplicationsQueryDto', () => {
     ]);
   });
 });
+
+describe('money range message', () => {
+  it('shows the limits as RM amounts', () => {
+    const dto = plainToInstance(CreateApplicationDto, {
+      ...validApplication,
+      loanAmount: '999999',
+    });
+    const errors = validateSync(dto);
+    const loan = errors.find((e) => e.property === 'loanAmount');
+
+    expect(Object.values(loan?.constraints ?? {})).toContain(
+      'loanAmount must be an amount between RM1,000.00 and RM150,000.00',
+    );
+  });
+});

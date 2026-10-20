@@ -37,6 +37,12 @@ export function maskNric(value: string): string {
   return `******-**-${normalizeNric(value).slice(-4)}`;
 }
 
+/** `900101145678` -> `900101-14-5678`. Input must already be a valid 12-digit NRIC. */
+export function formatNric(value: string): string {
+  const digits = normalizeNric(value);
+  return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
+}
+
 export function IsMalaysianNric(validationOptions?: ValidationOptions) {
   return (object: object, propertyName: string) => {
     registerDecorator({

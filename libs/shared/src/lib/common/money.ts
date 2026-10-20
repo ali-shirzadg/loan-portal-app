@@ -46,7 +46,7 @@ export function IsMoneyInRange(
       propertyName,
       constraints: [min, max],
       options: {
-        message: `${propertyName} must be an amount between ${min} and ${max}`,
+        message: `${propertyName} must be an amount between ${formatRm(min.toFixed(2))} and ${formatRm(max.toFixed(2))}`,
         ...validationOptions,
       },
       validator: {

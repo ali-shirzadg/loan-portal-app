@@ -1,4 +1,4 @@
-import { isMalaysianNric, maskNric, normalizeNric } from './nric';
+import { formatNric, isMalaysianNric, maskNric, normalizeNric } from './nric';
 
 describe('isMalaysianNric', () => {
   it.each([
@@ -52,5 +52,15 @@ describe('maskNric', () => {
   it('shows only the last 4 digits', () => {
     expect(maskNric('900101141234')).toBe('******-**-1234');
     expect(maskNric('900101-14-1234')).toBe('******-**-1234');
+  });
+});
+
+describe('formatNric', () => {
+  it('inserts the dashes into 12 digits', () => {
+    expect(formatNric('900101145678')).toBe('900101-14-5678');
+  });
+
+  it('leaves an already formatted NRIC unchanged', () => {
+    expect(formatNric('900101-14-5678')).toBe('900101-14-5678');
   });
 });
