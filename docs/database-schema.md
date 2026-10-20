@@ -113,7 +113,7 @@ Primary keys cover lookups by id. The `user_id` foreign key is served by the lef
 
 - Foreign keys: `loan_applications.user_id -> users.id` and `application_status_events.application_id -> loan_applications.id`, both `ON DELETE RESTRICT`.
 - CHECK constraints on `loan_applications` (enforced by MySQL 8.0.16+). The bounds come from `LOAN_LIMITS` in `libs/shared`, the same constant the DTOs use:
-  - `CHK_loan_applications_loan_amount`: `loan_amount BETWEEN 1000 AND 200000`
+  - `CHK_loan_applications_loan_amount`: `loan_amount BETWEEN 1000 AND 150000`
   - `CHK_loan_applications_tenure`: `tenure_months BETWEEN 12 AND 84`
   - `CHK_loan_applications_income`: `monthly_income > 0 AND monthly_income <= 10000000`
   - `CHK_loan_applications_decided_at`: `(status = 'PENDING') = (decided_at IS NULL)`
@@ -123,8 +123,9 @@ Primary keys cover lookups by id. The `user_id` foreign key is served by the lef
 
 - Stored as `DECIMAL(12,2)`, never FLOAT/DOUBLE.
 - mysql2 returns DECIMAL as a string, and the entity types it as `string`. In the API and the web app, amounts travel as strings matching `^\d{1,10}(\.\d{1,2})?$`.
-- Range checks compare integer sen (`moneyToSen` in `libs/shared`), so there is no float error at boundaries such as 999.99 / 1000.00 / 200000.00 / 200000.01.
-- Display as RM with 2 decimals (`formatMoney`).
+- Range checks compare integer sen (`moneyToSen` in `libs/shared`), so there is no float error at boundaries such as 999.99 / 1000.00 / 149999.99 / 150000.00 / 150000.01.
+- Display as `RM150,000.00`: RM prefix, comma thousands, 2 decimals (`formatRm`).
+- Limits: the amount cap (RM150,000) and the 7-year (84 month) tenure follow RHB Personal Financing / Personal Financing-i, private sector: https://www.rhbgroup.com/personal/loans/personal-financing/index.html. The RM1,000 minimum is our own assumption (RHB publishes none).
 
 ## Not tables
 

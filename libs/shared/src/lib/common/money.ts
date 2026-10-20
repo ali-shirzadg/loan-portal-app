@@ -23,6 +23,11 @@ export function formatMoney(value: string): string {
   return `${whole}.${String(sen % 100).padStart(2, '0')}`;
 }
 
+/** Display convention: `RM150,000.00` (RM prefix, comma thousands, 2 decimals). */
+export function formatRm(value: string): string {
+  return `RM${formatMoney(value)}`;
+}
+
 /**
  * The value must be a money string within [min, max] (RM, inclusive).
  * The comparison is done in integer sen, so there is no float error.
