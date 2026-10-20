@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Landmark, LogOutIcon, UserIcon } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Role } from '@loan-portal/shared';
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { landingPath, paths } from '@/config/paths';
+import { adminKeys } from '@/features/admin/api/get-admin-applications';
 import { useApplicationEvents } from '@/features/applications/hooks/use-application-events';
 import { useUser } from '@/features/auth/api/get-user';
 import { useLogout } from '@/features/auth/api/logout';
@@ -30,8 +32,14 @@ export function AppLayout() {
   const logout = useLogout();
   const navigate = useNavigate();
 
-  // Only customers receive status events (FR-RT-2).
-  useApplicationEvents(user?.role === Role.CUSTOMER);
+  // Customers receive events for their own applications only (FR-RT-2); admins receive all.
+  const queryClient = useQueryClient();
+  useApplicationEvents(
+    !!user,
+    user?.role === Role.ADMIN
+      ? () => void queryClient.invalidateQueries({ queryKey: adminKeys.all })
+      : undefined,
+  );
 
   if (!user) return null;
 

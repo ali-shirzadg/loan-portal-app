@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ApplicationStatus,
@@ -27,8 +27,14 @@ export function isStatusChangedEvent(
  * dropped connection; we refetch everything on reopen to catch missed events
  * (FR-RT-3) and reopen manually if the browser gave up (e.g. after a 401).
  */
-export function useApplicationEvents(enabled: boolean): void {
+export function useApplicationEvents(
+  enabled: boolean,
+  /** Lets the app layer refresh queries owned by other features (e.g. the admin list). */
+  onChange?: () => void,
+): void {
   const queryClient = useQueryClient();
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
     if (!enabled) return;
@@ -47,6 +53,7 @@ export function useApplicationEvents(enabled: boolean): void {
         if (dropped) {
           dropped = false;
           void queryClient.invalidateQueries({ queryKey: applicationKeys.all });
+          onChangeRef.current?.();
         }
       };
 
@@ -64,6 +71,7 @@ export function useApplicationEvents(enabled: boolean): void {
         void queryClient.invalidateQueries({
           queryKey: applicationKeys.detail(payload.applicationId),
         });
+        onChangeRef.current?.();
       };
 
       source.onerror = () => {
