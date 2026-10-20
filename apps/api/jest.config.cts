@@ -1,5 +1,6 @@
 // These Nest packages ship ESM only; Jest needs them compiled to CommonJS.
 const esmOnlyPackages = [
+  '@faker-js/faker',
   '@nestjs/jwt',
   '@nestjs/typeorm',
   '@nestjs/bullmq',

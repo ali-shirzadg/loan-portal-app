@@ -10,7 +10,9 @@
     "db:migrate": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:run",
     "db:migrate:revert": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:revert",
     "db:migration:show": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:show",
-    "db:migration:generate": "sh -c 'NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:generate apps/api/src/database/migrations/$0'"
+    "db:migration:generate": "sh -c 'NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:generate apps/api/src/database/migrations/$0'",
+    "seed:admin": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json ts-node apps/api/src/seed/seed-admin.ts",
+    "seed": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json ts-node apps/api/src/seed/seed.ts"
   },
   "private": true,
   "dependencies": {
