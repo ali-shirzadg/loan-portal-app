@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import {
@@ -21,6 +22,7 @@ import { isDuplicateKeyError } from '../common/db-errors';
 import { normalizeMoney } from '../common/money';
 import { CreditCheckScheduler } from '../credit-check/credit-check.scheduler';
 import { pickCreditCheckDelayMs } from '../credit-check/credit-check-schedule';
+import { UsersService } from '../users/users.service';
 import { LoanPurposesService } from '../loan-purposes/loan-purposes.service';
 import { ApplicationStatusEvent } from './application-status-event.entity';
 import { LoanApplication } from './loan-application.entity';
@@ -61,6 +63,7 @@ export class ApplicationsService {
     private readonly applications: Repository<LoanApplication>,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly purposes: LoanPurposesService,
+    private readonly users: UsersService,
     private readonly creditCheck: CreditCheckScheduler,
   ) {}
 
@@ -89,13 +92,17 @@ export class ApplicationsService {
       throw new BadRequestException(body);
     }
 
+    // FR-APP-5: the contact email is the account's, never client input.
+    const account = await this.users.findById(userId);
+    if (!account) throw new UnauthorizedException('Authentication required');
+
     const now = new Date();
     const application = this.applications.create({
       userId,
       fullName: dto.fullName,
       nric: normalizeNric(dto.nric),
       phone: normalizeMyPhone(dto.phone),
-      email: dto.email.toLowerCase(),
+      email: account.email.toLowerCase(),
       monthlyIncome: normalizeMoney(dto.monthlyIncome),
       loanAmount: normalizeMoney(dto.loanAmount),
       tenureMonths: dto.tenureMonths,

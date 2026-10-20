@@ -35,7 +35,7 @@ function setup(onCreated = vi.fn()) {
   renderWithProviders(
     <ApplicationForm
       purposes={purposes}
-      defaultEmail="account@example.com"
+      accountEmail="account@example.com"
       onCreated={onCreated}
     />,
   );
@@ -61,11 +61,14 @@ const submit = () =>
   fireEvent.click(screen.getByRole('button', { name: /submit application/i }));
 
 describe('ApplicationForm', () => {
-  it('pre-fills the email from the account', () => {
+  it('FR-APP-5: shows the account email read-only', () => {
     setup();
-    expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe(
-      'account@example.com',
-    );
+    const email = screen.getByLabelText('Email') as HTMLInputElement;
+
+    expect(email.value).toBe('account@example.com');
+    expect(email.readOnly).toBe(true);
+    expect(email.getAttribute('aria-readonly')).toBe('true');
+    expect(screen.getByText('From your account.')).toBeTruthy();
   });
 
   it('shows the shared-DTO validation errors for a bad NRIC and an amount above RM150,000 (FR-APP-2)', async () => {
@@ -121,6 +124,24 @@ describe('ApplicationForm', () => {
 
     release();
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(created));
+  });
+
+  it('FR-APP-5: the request body has no email', async () => {
+    let body: Record<string, unknown> = {};
+    server.use(
+      http.post('*/api/applications', async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(created, { status: 201 });
+      }),
+    );
+    const { onCreated } = setup();
+    fillValid();
+
+    submit();
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalled());
+    expect(body).not.toHaveProperty('email');
+    expect(body).toMatchObject({ fullName: 'Test Person', tenureMonths: 36 });
   });
 
   it('shows server-side field errors on the matching inputs', async () => {

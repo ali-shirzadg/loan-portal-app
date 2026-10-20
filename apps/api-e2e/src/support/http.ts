@@ -43,7 +43,6 @@ export const VALID_APPLICATION = {
   fullName: 'Nur Aisyah Test',
   nric: '900101-14-1234',
   phone: '012-3456789',
-  email: 'aisyah@example.test',
   monthlyIncome: '4500.50',
   loanAmount: '25000',
   tenureMonths: 36,

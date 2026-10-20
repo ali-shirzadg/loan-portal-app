@@ -1,5 +1,4 @@
 import {
-  IsEmail,
   IsInt,
   IsMobilePhone,
   IsNotEmpty,
@@ -13,7 +12,7 @@ import {
 import { IsMalaysianNric } from '../common/nric';
 import { IsMoneyInRange, MONEY_PATTERN } from '../common/money';
 import { LOAN_LIMITS } from '../common/loan-limits';
-import { Trim, TrimLowercase } from '../common/transforms';
+import { Trim } from '../common/transforms';
 
 const MONEY_FORMAT_MESSAGE =
   '$property must be an amount in RM with at most 2 decimal places';
@@ -34,11 +33,6 @@ export class CreateApplicationDto {
   @Trim()
   @IsMobilePhone('ms-MY')
   phone!: string;
-
-  @TrimLowercase()
-  @IsEmail()
-  @MaxLength(254)
-  email!: string;
 
   /** RM, as a string such as "4500.50". Greater than 0. */
   @Trim()

@@ -92,7 +92,7 @@ Hashing: argon2id (decision D4, §7) following the OWASP Password Storage Cheat 
 | FR-APP-2 | M   | Same validation rules on frontend and backend                       | Rules live once in `libs/shared` (class-validator DTO); backend is the authority                                  |
 | FR-APP-3 | M   | Loan purpose must be one of the backend-provided purposes           | Unknown purpose code → `400` (validated server-side against the cached list)                                      |
 | FR-APP-4 | S   | Duplicate-submit protection                                         | Submit button disabled while pending; mutation is **never auto-retried**. **[OPEN]** `Idempotency-Key` header (C) |
-| FR-APP-5 | S   | Email field pre-filled from the account                             | Editable — **[ASSUMPTION]** applicant contact email may differ from login email                                   |
+| FR-APP-5 | S   | Email shown from the account, not editable                          | The server takes it from the session; an `email` in the payload is rejected (`400`)                               |
 
 
 
@@ -105,7 +105,7 @@ Hashing: argon2id (decision D4, §7) following the OWASP Password Storage Cheat 
 | Full name           | Required, 2–100 chars, trimmed           |                                                                                                                                                                                                    |
 | NRIC                | Required, Malaysian NRIC                 | Accept `YYMMDD-PB-####` or 12 digits; **stored normalised as 12 digits**; first 6 digits must be a real calendar date. Custom validator — `IsIdentityCard` in validator.js has no Malaysian locale |
 | Phone               | Required, `IsMobilePhone('ms-MY')`       | Stored normalised (e.g. `+60…`) — **[OPEN]** normalisation format                                                                                                                                  |
-| Email               | Required, valid email, ≤ 254 chars       | Stored lower-cased                                                                                                                                                                                 |
+| Email               | Not an input: the account's email        | Copied from the signed-in user, stored lower-cased                                                                                                                                                                                |
 | Monthly income (RM) | Required, > 0, ≤ 10,000,000, max 2 dp    | **[ASSUMPTION]** bounds                                                                                                                                                                            |
 | Loan amount (RM)    | Required, 1,000 – 150,000, max 2 dp      | Cap per [RHB Personal Financing](https://www.rhbgroup.com/personal/loans/personal-financing/index.html) ("up to RM150,000"); minimum is an **[ASSUMPTION]**. Display as `RM150,000.00`                                                                                                                                                    |
 | Tenure (months)     | Required, integer, 12 – 84               | Max 7 years per the same RHB page; minimum is an **[ASSUMPTION]**                                                                                                                                                                                   |

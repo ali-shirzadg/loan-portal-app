@@ -20,7 +20,6 @@ const LABELS: Record<keyof CreateApplicationDto, string> = {
   fullName: 'Full name',
   nric: 'NRIC',
   phone: 'Mobile number',
-  email: 'Email',
   monthlyIncome: 'Monthly income',
   loanAmount: 'Loan amount',
   tenureMonths: 'Tenure',
@@ -31,14 +30,14 @@ const FIELDS = Object.keys(LABELS);
 type ApplicationFormProps = {
   /** Loan purposes, already loaded (the route renders a skeleton until then). */
   purposes: LoanPurposeDto[];
-  /** Account email; editable because the contact email may differ (FR-APP-5). */
-  defaultEmail: string;
+  /** Account email, shown read-only; the server takes it from the session (FR-APP-5). */
+  accountEmail: string;
   onCreated: (application: ApplicationDetailDto) => void;
 };
 
 export function ApplicationForm({
   purposes,
-  defaultEmail,
+  accountEmail,
   onCreated,
 }: ApplicationFormProps) {
   const create = useCreateApplication();
@@ -57,7 +56,6 @@ export function ApplicationForm({
       fullName: '',
       nric: '',
       phone: '',
-      email: defaultEmail,
       monthlyIncome: '',
       loanAmount: '',
       purposeCode: '',
@@ -113,12 +111,15 @@ export function ApplicationForm({
             error={fieldError('phone')}
             {...register('phone')}
           />
+          {/* Not registered with react-hook-form and never sent: FR-APP-5. */}
           <TextField
             label="Email"
             type="email"
-            autoComplete="email"
-            error={fieldError('email')}
-            {...register('email')}
+            value={accountEmail}
+            readOnly
+            aria-readonly="true"
+            hint="From your account."
+            className="bg-muted text-muted-foreground"
           />
         </div>
       </fieldset>

@@ -55,7 +55,7 @@ export function Component() {
           {purposes.data && user ? (
             <ApplicationForm
               purposes={purposes.data}
-              defaultEmail={user.email}
+              accountEmail={user.email}
               onCreated={(application) =>
                 navigate(paths.applications.detail(application.id))
               }

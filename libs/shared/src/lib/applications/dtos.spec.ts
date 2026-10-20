@@ -8,7 +8,6 @@ const validApplication = {
   fullName: '  Test Person  ',
   nric: '900101-14-1234',
   phone: '012-3456789',
-  email: ' Test.Person@Example.COM ',
   monthlyIncome: '4500.50',
   loanAmount: '25000',
   tenureMonths: 36,
@@ -23,7 +22,6 @@ describe('CreateApplicationDto', () => {
     const dto = plainToInstance(CreateApplicationDto, validApplication);
     expect(validateSync(dto)).toEqual([]);
     expect(dto.fullName).toBe('Test Person');
-    expect(dto.email).toBe('test.person@example.com');
   });
 
   it('reports the offending fields', () => {

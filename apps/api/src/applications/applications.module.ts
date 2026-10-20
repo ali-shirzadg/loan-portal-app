@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from '../users/users.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { CreditCheckModule } from '../credit-check/credit-check.module';
 import { LoanPurposesModule } from '../loan-purposes/loan-purposes.module';
@@ -13,6 +14,7 @@ import { LoanApplication } from './loan-application.entity';
   imports: [
     TypeOrmModule.forFeature([LoanApplication, ApplicationStatusEvent]),
     LoanPurposesModule,
+    UsersModule,
     RealtimeModule,
     CreditCheckModule,
   ],

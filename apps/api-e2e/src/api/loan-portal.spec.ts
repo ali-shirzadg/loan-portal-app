@@ -140,6 +140,16 @@ describe('Loan portal API', () => {
       });
     });
 
+    it('FR-APP-5: an email in the payload is rejected; the server takes it from the account', async () => {
+      const res = await alice.http.post('/api/applications', {
+        ...VALID_APPLICATION,
+        email: 'someone.else@example.test',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.data.errors).toHaveProperty('email');
+    });
+
     it('FR-APP-3: an unknown purpose code is 400 with errors.purposeCode', async () => {
       const res = await alice.http.post('/api/applications', {
         ...VALID_APPLICATION,
@@ -167,6 +177,9 @@ describe('Loan portal API', () => {
         Date.parse(res.data.creditCheckDueAt) - Date.parse(res.data.createdAt);
       expect(due).toBeGreaterThanOrEqual(10_000);
       expect(due).toBeLessThanOrEqual(300_000);
+      // FR-APP-5: the contact email is the signed-in account's.
+      const me = await alice.http.get('/api/auth/me');
+      expect(res.data.email).toBe(me.data.email);
       applicationId = res.data.id;
     });
 

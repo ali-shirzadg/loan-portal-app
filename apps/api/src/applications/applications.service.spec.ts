@@ -9,6 +9,7 @@ import {
 } from '@loan-portal/shared';
 import { CREDIT_CHECK_DELAY_MS } from '../credit-check/credit-check-schedule';
 import { CreditCheckScheduler } from '../credit-check/credit-check.scheduler';
+import { UsersService } from '../users/users.service';
 import { LoanPurposesService } from '../loan-purposes/loan-purposes.service';
 import { ApplicationStatusEvent } from './application-status-event.entity';
 import { ApplicationsService } from './applications.service';
@@ -18,7 +19,6 @@ const dto: CreateApplicationDto = {
   fullName: 'Aisyah Test',
   nric: '900101-14-1234',
   phone: '012-3456789',
-  email: 'aisyah@loanportal.test',
   monthlyIncome: '4500.5',
   loanAmount: '25000',
   tenureMonths: 36,
@@ -50,6 +50,7 @@ describe('ApplicationsService', () => {
   };
   const purposes = { findByCode: jest.fn() };
   const scheduler = { schedule: jest.fn() };
+  const users = { findById: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -57,6 +58,10 @@ describe('ApplicationsService', () => {
     purposes.findByCode.mockResolvedValue({ code: 'TRAVEL', label: 'Travel' });
     repo.findOneBy.mockResolvedValue(null);
     scheduler.schedule.mockResolvedValue(undefined);
+    users.findById.mockResolvedValue({
+      id: 'user-1',
+      email: 'Account@LoanPortal.test',
+    });
     const module = await Test.createTestingModule({
       providers: [
         ApplicationsService,
@@ -64,6 +69,7 @@ describe('ApplicationsService', () => {
         { provide: getDataSourceToken(), useValue: dataSource },
         { provide: LoanPurposesService, useValue: purposes },
         { provide: CreditCheckScheduler, useValue: scheduler },
+        { provide: UsersService, useValue: users },
       ],
     }).compile();
     service = module.get(ApplicationsService);
@@ -77,7 +83,7 @@ describe('ApplicationsService', () => {
       userId: 'user-1',
       nric: '900101141234',
       phone: '+60123456789',
-      email: 'aisyah@loanportal.test',
+      email: 'account@loanportal.test', // FR-APP-5: from the account, lower-cased
       monthlyIncome: '4500.50',
       loanAmount: '25000.00',
       purposeLabel: 'Travel',
@@ -184,6 +190,7 @@ describe('ApplicationsService reads', () => {
         { provide: getDataSourceToken(), useValue: {} },
         { provide: LoanPurposesService, useValue: {} },
         { provide: CreditCheckScheduler, useValue: {} },
+        { provide: UsersService, useValue: {} },
       ],
     }).compile();
     service = module.get(ApplicationsService);
