@@ -131,7 +131,7 @@ export function ApplicationForm({
             label="Monthly income"
             prefix="RM"
             inputMode="decimal"
-            placeholder="4,500.00"
+            placeholder="4500.00"
             error={fieldError('monthlyIncome')}
             {...register('monthlyIncome')}
           />
