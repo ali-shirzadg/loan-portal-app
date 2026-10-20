@@ -77,7 +77,8 @@ export function AdminApplicationsTable() {
             ) : (
               items.map((application) => (
                 <TableRow key={application.id}>
-                  <TableCell>
+                  {/* Long names wrap, so the status column stays visible on phones. */}
+                  <TableCell className="whitespace-normal">
                     <Link
                       to={paths.applications.detail(application.id)}
                       className="font-medium underline-offset-4 hover:underline"
