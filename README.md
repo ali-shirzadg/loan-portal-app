@@ -121,12 +121,14 @@ adds any missing job, and retries failed ones, so a restart or a flushed Redis d
 
 Counts are from the last run of `npx nx test <project>` on this branch.
 
-- Unit: `api` 45 tests (auth, loan-purposes single-flight and cache, submit and idempotency, ownership,
-  credit-check idempotency, realtime filtering, seed data, health), `shared` 58 (NRIC, money, phone, DTOs),
-  `web` 33 (validation, auth guard, SSE, API client, admin table).
-- End to end: `apps/api-e2e` has 19 HTTP tests against a running API and the real database: register, cookie
+- Unit: `api` 60 tests (auth, loan-purposes single-flight and cache, submit and idempotency, ownership,
+  credit-check idempotency, reconciler sweep, enqueue timeout, field encryption, config validation, realtime
+  filtering, seed data, health), `shared` 58 (NRIC, money, phone, DTOs), `web` 34 (validation, auth guard,
+  SSE, API client, admin table, application form).
+- End to end: `apps/api-e2e` has 21 HTTP tests against a running API and the real database: register, cookie
   flags, login failure, roles, submit, validation error shape, idempotency (including a concurrent race), own
-  list, 404 for another customer's application, admin list with status filter, event-stream headers, health.
+  list, 404 for another customer's application, `Cache-Control: no-store`, ciphertext at rest, admin list with
+  status filter, event-stream headers, health.
   Run it with `npx nx e2e api-e2e` after `npm run seed:admin`. Registration and login are rate limited, so wait a
   minute between runs. It deletes the users it created when it finishes.
 - Browser (Playwright) tests are not included.
