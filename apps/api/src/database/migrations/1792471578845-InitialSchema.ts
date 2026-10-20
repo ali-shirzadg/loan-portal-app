@@ -1,5 +1,4 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { LOAN_LIMITS } from '@loan-portal/shared';
 
 export class InitialSchema1792471578845 implements MigrationInterface {
   name = 'InitialSchema1792471578845';
@@ -22,16 +21,16 @@ export class InitialSchema1792471578845 implements MigrationInterface {
     );
 
     // CHECK constraints (enforced by MySQL >= 8.0.16). The TypeORM MySQL driver
-    // does not manage them, so they are written by hand. Values are interpolated
-    // from LOAN_LIMITS; changing a limit later needs a new migration that alters them.
+    // does not manage them, so they are written by hand. Values are literal: migrations
+    // are immutable snapshots, later limit changes get their own migration.
     await queryRunner.query(
-      `ALTER TABLE \`loan_applications\` ADD CONSTRAINT \`CHK_loan_applications_loan_amount\` CHECK (\`loan_amount\` BETWEEN ${LOAN_LIMITS.amount.min} AND ${LOAN_LIMITS.amount.max})`,
+      `ALTER TABLE \`loan_applications\` ADD CONSTRAINT \`CHK_loan_applications_loan_amount\` CHECK (\`loan_amount\` BETWEEN 1000 AND 200000)`,
     );
     await queryRunner.query(
-      `ALTER TABLE \`loan_applications\` ADD CONSTRAINT \`CHK_loan_applications_tenure\` CHECK (\`tenure_months\` BETWEEN ${LOAN_LIMITS.tenureMonths.min} AND ${LOAN_LIMITS.tenureMonths.max})`,
+      `ALTER TABLE \`loan_applications\` ADD CONSTRAINT \`CHK_loan_applications_tenure\` CHECK (\`tenure_months\` BETWEEN 12 AND 84)`,
     );
     await queryRunner.query(
-      `ALTER TABLE \`loan_applications\` ADD CONSTRAINT \`CHK_loan_applications_income\` CHECK (\`monthly_income\` > 0 AND \`monthly_income\` <= ${LOAN_LIMITS.monthlyIncomeMax})`,
+      `ALTER TABLE \`loan_applications\` ADD CONSTRAINT \`CHK_loan_applications_income\` CHECK (\`monthly_income\` > 0 AND \`monthly_income\` <= 10000000)`,
     );
     await queryRunner.query(
       `ALTER TABLE \`loan_applications\` ADD CONSTRAINT \`CHK_loan_applications_decided_at\` CHECK ((\`status\` = 'PENDING') = (\`decided_at\` IS NULL))`,
