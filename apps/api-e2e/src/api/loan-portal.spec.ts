@@ -241,6 +241,7 @@ describe('Loan portal API', () => {
 
       expect(res.status).toBe(200);
       expect(res.data.nric).toBe('900101141234');
+      expect(res.headers['cache-control']).toBe('no-store');
     });
 
     it("FR-VIEW-2 / NFR-SEC-2: another customer's application is 404, not 403", async () => {

@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import type { EnvironmentVariables } from '../config/env.validation';
 import { AllExceptionsFilter } from '../common/filters/all-exceptions.filter';
@@ -28,6 +29,11 @@ export function configureApp(app: INestApplication): void {
         : undefined,
     }),
   );
+  // Responses carry personal data (NRIC, income); browsers and proxies must not keep them.
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
   app.use(cookieParser());
   app.enableCors({
     origin: config.get('WEB_ORIGIN', { infer: true }),
