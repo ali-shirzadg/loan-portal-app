@@ -4,6 +4,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from '../auth/auth.module';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { LoanPurposesModule } from '../loan-purposes/loan-purposes.module';
 import { UsersModule } from '../users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -36,6 +37,7 @@ import { buildTypeOrmOptions } from '../database/typeorm.config';
     ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 120 }] }),
     UsersModule,
     AuthModule,
+    LoanPurposesModule,
   ],
   providers: [
     // Guard order matters: throttle, then authenticate, then authorise.
