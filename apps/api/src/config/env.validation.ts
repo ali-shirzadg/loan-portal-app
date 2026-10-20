@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsString,
   IsUrl,
+  Matches,
   Max,
   MinLength,
   Min,
@@ -64,6 +65,12 @@ export class EnvironmentVariables {
   @IsString()
   @MinLength(32)
   JWT_SECRET!: string;
+
+  /** 32 random bytes, base64 (`openssl rand -base64 32`). Encrypts NRIC, phone and income at rest. */
+  @Matches(/^[A-Za-z0-9+/]{43}=$/, {
+    message: 'FIELD_ENCRYPTION_KEY must be 32 bytes, base64-encoded',
+  })
+  FIELD_ENCRYPTION_KEY!: string;
 
   @IsInt()
   @Min(60)

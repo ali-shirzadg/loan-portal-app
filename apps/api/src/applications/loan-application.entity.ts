@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ApplicationStatus } from '@loan-portal/shared';
+import { encryptedColumn } from '../common/crypto/field-encryption';
 import { User } from '../users/user.entity';
 
 // CHECK constraints are created in the migration: the TypeORM MySQL driver does not manage them.
@@ -42,19 +43,32 @@ export class LoanApplication {
   @Column({ name: 'full_name', type: 'varchar', length: 100 })
   fullName!: string;
 
-  /** Normalised 12 digits. Never log; mask in lists. */
-  @Column({ type: 'char', length: 12 })
+  /** Normalised 12 digits, encrypted at rest. Never log; mask in lists. */
+  @Column({
+    type: 'varchar',
+    length: 128,
+    transformer: encryptedColumn('loan_applications.nric'),
+  })
   nric!: string;
 
-  /** E.164, e.g. +60123456789. */
-  @Column({ type: 'varchar', length: 16 })
+  /** E.164, e.g. +60123456789, encrypted at rest. */
+  @Column({
+    type: 'varchar',
+    length: 128,
+    transformer: encryptedColumn('loan_applications.phone'),
+  })
   phone!: string;
 
   @Column({ type: 'varchar', length: 254 })
   email!: string;
 
-  /** DECIMAL(12,2) — kept as string to avoid float error. */
-  @Column({ name: 'monthly_income', type: 'decimal', precision: 12, scale: 2 })
+  /** Decimal string such as `4500.50`, encrypted at rest; range checked by the DTO only. */
+  @Column({
+    name: 'monthly_income',
+    type: 'varchar',
+    length: 128,
+    transformer: encryptedColumn('loan_applications.monthly_income'),
+  })
   monthlyIncome!: string;
 
   /** DECIMAL(12,2) — kept as string to avoid float error. */

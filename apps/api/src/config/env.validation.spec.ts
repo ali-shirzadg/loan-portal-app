@@ -13,6 +13,7 @@ const base = {
   REDIS_PORT: '6379',
   REDIS_PASSWORD: 'pw',
   JWT_SECRET: 'x'.repeat(32),
+  FIELD_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString('base64'),
   JWT_EXPIRES_IN_SECONDS: '3600',
   WEB_ORIGIN: 'http://localhost:4200',
   COOKIE_SECURE: 'false',
@@ -32,5 +33,12 @@ describe('validate', () => {
 
   it('rejects a short JWT_SECRET', () => {
     expect(() => validate({ ...base, JWT_SECRET: 'short' })).toThrow();
+  });
+
+  it('rejects a FIELD_ENCRYPTION_KEY that is not 32 base64 bytes', () => {
+    const short = Buffer.alloc(16, 1).toString('base64');
+    expect(() => validate({ ...base, FIELD_ENCRYPTION_KEY: short })).toThrow(
+      'FIELD_ENCRYPTION_KEY',
+    );
   });
 });

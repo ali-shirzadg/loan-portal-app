@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { createConnection } from 'mysql2/promise';
 import {
   newSession,
   PASSWORD,
@@ -181,6 +182,38 @@ describe('Loan portal API', () => {
       const me = await alice.http.get('/api/auth/me');
       expect(res.data.email).toBe(me.data.email);
       applicationId = res.data.id;
+    });
+
+    it('NFR-PRIV-2: NRIC, phone and income are ciphertext in the database', async () => {
+      try {
+        process.loadEnvFile();
+      } catch {
+        // no .env file: rely on the process environment
+      }
+      const db = await createConnection({
+        host: process.env.DATABASE_HOST,
+        port: Number(process.env.DATABASE_PORT),
+        user: process.env.DATABASE_USERNAME,
+        password: process.env.DATABASE_PASSWORD,
+        database: process.env.DATABASE_NAME,
+      });
+      try {
+        const [rows] = await db.query(
+          'SELECT nric, phone, monthly_income FROM loan_applications WHERE id = ?',
+          [applicationId],
+        );
+        const [row] = rows as Record<string, string>[];
+        for (const [column, plain] of [
+          ['nric', '900101141234'],
+          ['phone', '+60123456789'],
+          ['monthly_income', '4500.50'],
+        ]) {
+          expect(row[column]).toMatch(/^v1:/);
+          expect(row[column]).not.toContain(plain);
+        }
+      } finally {
+        await db.end();
+      }
     });
 
     it('FR-APP-4: repeating an Idempotency-Key returns the original with 200', async () => {

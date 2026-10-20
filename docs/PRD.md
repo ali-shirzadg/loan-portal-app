@@ -218,6 +218,7 @@ On event → React Query `invalidateQueries`. Multi-instance needs Redis pub/sub
 | NFR-SEC-4  | Secrets                                 | No secrets in git; `.env.example` committed; config validated at boot (app refuses to start if invalid)                           |
 | NFR-SEC-5  | Dependencies                            | Lockfile committed; official packages only; `npm audit` clean of high/critical at submission                                      |
 | NFR-PRIV-1 | Personal data                           | NRIC, phone, income never written to logs; NRIC masked in lists; synthetic data only, never real PII (incl. in AI prompts)        |
+| NFR-PRIV-2 | Encryption at rest | NRIC, phone and monthly income stored AES-256-GCM encrypted; key from `FIELD_ENCRYPTION_KEY`, never in git |
 | NFR-PERF-1 | DB                                      | Indexes: `(user_id, created_at)`, `(status, created_at)`, `(status, credit_check_due_at)`                                         |
 | NFR-PERF-2 | Targets *(projections, to be measured)* | Admin list page p95 < 300 ms locally at 10k rows; warm `/loan-purposes` < 50 ms                                                   |
 | NFR-REL-1  | Errors                                  | Consistent error shape `{ statusCode, message, errors? }`; no stack traces to clients                                             |

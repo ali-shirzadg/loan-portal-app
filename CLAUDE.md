@@ -25,6 +25,7 @@ class-validator DTOs shared via `libs/shared` · Docker Compose for MySQL and Re
 - Global `ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })`.
 - Ownership enforced in the DB query (`WHERE user_id = :currentUser`); non-owner → `404`.
 - Money is `DECIMAL(12,2)`, carried as a string in TypeScript; never JS float math for stored amounts.
+  Monthly income is the exception: it is personal data and stored encrypted.
 - Schema changes only via TypeORM migrations (`synchronize: false`, `migrationsRun: false`).
 - Store timestamps in UTC; display in `Asia/Kuala_Lumpur`.
 - The database row is the source of truth for application status; the queue only schedules work.
@@ -38,6 +39,7 @@ class-validator DTOs shared via `libs/shared` · Docker Compose for MySQL and Re
 - Never use real personal data. NRICs, names and phones are synthetic, in code, seeds and tests.
 - Never put secrets in code or commits. `.env` is git-ignored; `.env.example` is committed.
 - Never log NRIC, phone, income or passwords. Mask NRIC in list views.
+- NRIC, phone and income are encrypted at rest (`encryptedColumn`, AES-256-GCM, `FIELD_ENCRYPTION_KEY`).
 - Auth token lives in an `httpOnly` cookie, never `localStorage`.
 - Registration always creates `CUSTOMER`; admins only via the seed command.
 - Passwords hashed with Argon2id (OWASP parameters).

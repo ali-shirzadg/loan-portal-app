@@ -30,6 +30,9 @@ import { buildTypeOrmOptions } from '../database/typeorm.config';
           DATABASE_NAME: config.get('DATABASE_NAME', { infer: true }),
           DATABASE_USERNAME: config.get('DATABASE_USERNAME', { infer: true }),
           DATABASE_PASSWORD: config.get('DATABASE_PASSWORD', { infer: true }),
+          FIELD_ENCRYPTION_KEY: config.get('FIELD_ENCRYPTION_KEY', {
+            infer: true,
+          }),
         }),
         // Webpack bundles the app, so entity globs cannot work: each feature
         // module registers its entities with TypeOrmModule.forFeature().
