@@ -11,3 +11,9 @@ team: I set the direction, and the agents did the typing.
 - **Agent-driven development:** Claude Code built the app step by step from that plan, one commit per step.
 - **Review:** I reviewed the result, changed or rejected what did not meet my standard, and
   accepted nothing that had not been tested and checked by hand.
+
+Where I overruled the agents, for example:
+
+- `npm run dev` starts only the apps, not the database: they have different lifecycles.
+- Strict TypeScript for every project, not only the API as suggested.
+- The application email comes from the signed-in account and cannot be edited in the form.
