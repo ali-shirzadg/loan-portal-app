@@ -6,7 +6,11 @@
     "dev": "nx run-many -t serve -p api web",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
-    "check": "nx run-many -t lint typecheck test build"
+    "check": "nx run-many -t lint typecheck test build",
+    "db:migrate": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:run",
+    "db:migrate:revert": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:revert",
+    "db:migration:show": "NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:show",
+    "db:migration:generate": "sh -c 'NODE_OPTIONS=--require=tsconfig-paths/register TS_NODE_PROJECT=apps/api/tsconfig.typeorm.json typeorm-ts-node-commonjs -d apps/api/src/database/data-source.ts migration:generate apps/api/src/database/migrations/$0'"
   },
   "private": true,
   "dependencies": {
