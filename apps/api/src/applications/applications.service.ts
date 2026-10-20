@@ -169,13 +169,18 @@ export class ApplicationsService {
     page: number,
     pageSize: number,
   ): Promise<Paginated<LoanApplication>> {
-    const [items, total] = await this.applications.findAndCount({
-      select: SUMMARY_COLUMNS,
-      where,
-      order: NEWEST_FIRST,
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+    // Not findAndCount: combined with a partial `select`, its total excluded rows
+    // with a NULL selected column (PENDING rows have no decided_at).
+    const [items, total] = await Promise.all([
+      this.applications.find({
+        select: SUMMARY_COLUMNS,
+        where,
+        order: NEWEST_FIRST,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.applications.count({ where }),
+    ]);
     return { items, page, pageSize, total };
   }
 

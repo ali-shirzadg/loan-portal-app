@@ -171,11 +171,12 @@ describe('ApplicationsService', () => {
 
 describe('ApplicationsService reads', () => {
   let service: ApplicationsService;
-  const repo = { findOneBy: jest.fn(), findAndCount: jest.fn() };
+  const repo = { findOneBy: jest.fn(), find: jest.fn(), count: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    repo.findAndCount.mockResolvedValue([[], 0]);
+    repo.find.mockResolvedValue([]);
+    repo.count.mockResolvedValue(0);
     const module = await Test.createTestingModule({
       providers: [
         ApplicationsService,
@@ -227,7 +228,7 @@ describe('ApplicationsService reads', () => {
     it("filters a customer's list by user id, newest first, with offset paging", async () => {
       await service.listForCustomer('user-1', { page: 3, pageSize: 20 });
 
-      expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { userId: 'user-1' },
           order: { createdAt: 'DESC', id: 'DESC' },
@@ -238,14 +239,15 @@ describe('ApplicationsService reads', () => {
     });
 
     it('applies the status filter for admins and returns the page envelope', async () => {
-      repo.findAndCount.mockResolvedValue([[{ id: 'a' }], 41]);
+      repo.find.mockResolvedValue([{ id: 'a' }]);
+      repo.count.mockResolvedValue(41);
 
       const result = await service.listAll(
         { page: 2, pageSize: 20 },
         ApplicationStatus.PENDING,
       );
 
-      expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { status: ApplicationStatus.PENDING },
         }),
@@ -261,7 +263,7 @@ describe('ApplicationsService reads', () => {
     it('lists every status when no filter is given', async () => {
       await service.listAll({ page: 1, pageSize: 20 });
 
-      expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({ where: {} }),
       );
     });
