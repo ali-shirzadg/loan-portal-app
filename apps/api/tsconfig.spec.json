@@ -4,6 +4,8 @@
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
     "moduleResolution": "bundler",
+    "allowJs": true,
+    "isolatedModules": true,
     "types": ["jest", "node"]
   },
   "include": [

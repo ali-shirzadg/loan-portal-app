@@ -4,21 +4,13 @@
     "module": "node16",
     "moduleResolution": "node16",
     "target": "es2021",
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
-      "@loan-portal/shared": [
-        "../../libs/shared/src/index.ts"
-      ]
+      "@loan-portal/shared": ["../../libs/shared/src/index.ts"]
     }
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }
